@@ -58,6 +58,7 @@ type CVEs struct {
 	ID          string
 	Description string
 	// CPEs        []string
+	CWEs       []string
 	References []string
 	Excludings []string
 	Exclude    []Versions

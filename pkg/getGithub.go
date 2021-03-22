@@ -140,6 +140,10 @@ func GetGithub(allCVEs *[]CVEs) {
 				Description: d.Package.Name,
 			}
 
+			for _, cwe := range d.Advisory.CWES.Edges {
+				c.CWEs = append(c.CWEs, cwe.Node.CWEID)
+			}
+
 			if string(d.VulnerableVersionRange[0]) == "<" {
 				c.Exclude = append(c.Exclude, Versions{End: d.VulnerableVersionRange[2:]})
 			} else if string(d.VulnerableVersionRange[0]) == "=" {
