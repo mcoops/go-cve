@@ -65,6 +65,13 @@ func loadCVE(allCVEs *[]CVEs, cve *CVE) {
 			ID:          c.CVE.CVE_data_meta.ID,
 			Description: c.CVE.Description.Description_data[0].Value,
 		}
+		var cwes []string
+		for _, cweData := range c.CVE.ProblemType.Problemtype_data[0].Description {
+			if cweData.Value != "NVD-CWE-Other" {
+				cwes = append(cwes, cweData.Value)
+			}
+		}
+		load_cve.CWEs = cwes
 		for _, o := range c.Configurations.Nodes {
 			if o.Children != nil {
 				for _, child := range *o.Children {
