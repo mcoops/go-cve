@@ -3,6 +3,7 @@ package helpers
 import (
 	"encoding/json"
 	"io/ioutil"
+	"strings"
 	"testing"
 )
 
@@ -25,7 +26,7 @@ func TestExtractCWE(t *testing.T) {
 		}
 	}
 	for _, found := range foundCWEs {
-		if found == "NVD-CWE-Other" {
+		if strings.HasPrefix("NVD-CWE-", found) {
 			t.Errorf("Found useless CWE string in CWES: %s", found)
 		}
 	}
