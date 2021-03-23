@@ -67,7 +67,7 @@ func loadCVE(allCVEs *[]CVEs, cve *CVE) {
 		}
 		var cwes []string
 		for _, cweData := range c.CVE.ProblemType.Problemtype_data[0].Description {
-			if cweData.Value != "NVD-CWE-Other" {
+			if !strings.HasPrefix("NVD-CWE-", cweData.Value) {
 				cwes = append(cwes, cweData.Value)
 			}
 		}
