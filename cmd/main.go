@@ -69,7 +69,12 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		if nvr != "" {
-			req := strings.Split(nvr, "@")
+			var req []string
+			if nvr[:1] == "@" {
+				req = strings.Split(nvr[1:], "@")
+			} else {
+				req = strings.Split(nvr, "@")
+			}
 
 			name := req[0]
 			ver := ""
