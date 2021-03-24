@@ -87,16 +87,6 @@ func GetGithub(allCVEs *[]CVEs) {
 
 	afterTxt := ""
 
-	// f, err := os.Create("/tmp/ghoutput.json")
-
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// defer f.Close()
-
-	// enc := json.NewEncoder(f)
-
 	for {
 		tosend := map[string]string{"query": fmt.Sprintf(query, afterTxt)}
 
@@ -132,6 +122,13 @@ func GetGithub(allCVEs *[]CVEs) {
 			for _, ids := range d.Advisory.Identifiers {
 				if ids.Type == "CVE" {
 					cve = ids.Value
+				}
+			}
+			if cve == "" { // if no cve, then load the ghsa
+				for _, ids := range d.Advisory.Identifiers {
+					if ids.Type == "GHSA" {
+						cve = ids.Value
+					}
 				}
 			}
 

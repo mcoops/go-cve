@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 
 	helpers "github.com/mcoops/go-cve/pkg"
@@ -11,6 +12,11 @@ import (
 )
 
 var allCVEs []helpers.CVEs
+
+var githubCVEs []helpers.CVEs
+var nvdCVEs []helpers.CVEs
+
+var symbolRegex = regexp.MustCompile("[\\W]+")
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
@@ -61,6 +67,35 @@ func verCompare(needle string, compVersions []helpers.Versions) bool {
 	return false
 }
 
+func doVersionCompare(ver string, cve helpers.CVEs) bool {
+	if ver == "" {
+		return true // no ver supplied can't match, always a match!
+	}
+
+	if string(ver[0]) != "v" {
+		ver = "v" + ver
+	}
+
+	if cve.Exclude != nil && verCompare(ver, cve.Exclude) {
+		return true
+	}
+
+	if cve.Include != nil && verCompare(ver, cve.Include) {
+		return true
+	}
+
+	return false
+}
+
+func hardRegexMatch(refs []string, regex *regexp.Regexp) bool {
+	for _, r := range refs {
+		if regex.MatchString(r) {
+			return true
+		}
+	}
+	return false
+}
+
 func mainSearch(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -81,51 +116,63 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 			if len(req) > 1 {
 				ver = req[1]
 			}
-			results := make([]helpers.CVEs, 0)
-			for _, s := range allCVEs {
-				// double check as the nvd results will be huge, github don't use references
-				// we want to try and filter out small searches and we use contains later
-				// TODO: on move to sql tag where the results come from
-				// TODO: fix this hack
-				if len(name) <= 4 {
-					if s.References != nil {
-						// search for the token
-						if strings.Contains(s.Description, " "+name+" ") == false {
-							continue
-						}
-					} else { // github, exact match name the package
-						if s.Description != name {
-							continue
+			results := make(map[string]helpers.CVEs)
+
+			searchLen := len(name)
+			// Until we split out functionality into their own files, handle
+			// each search differently
+
+			// are there symbols (:.@) included?
+			if searchLen < 15 && symbolRegex.MatchString(name) == false {
+				// not enough variation
+				// github do exact matches
+				for _, s := range githubCVEs {
+					if s.Description == name && doVersionCompare(ver, s) {
+						results[s.ID] = s
+						// results = append(results, s)
+					}
+				}
+
+				// tollerate /[name]/ or .[name]. and variations, but not -[name]-
+				// at this point it'll false positive too much
+				refRegex := regexp.MustCompile("[/\\.]" + name + "[/\\.]")
+				for _, s := range nvdCVEs {
+					// do the first search for a token key
+					// then it must exist in the references section
+					if strings.Contains(s.Description, " "+name+" ") && hardRegexMatch(s.References, refRegex) {
+						if doVersionCompare(ver, s) {
+							results[s.ID] = s
+							// results = append(results, s)
+							break
 						}
 					}
 				}
 
-				if strings.Contains(s.Description, name) || contains(s.References, name) {
-					// do version
-					if ver != "" {
-						// check if leading 'v'
-						if string(ver[0]) != "v" {
-							ver = "v" + ver
-						}
-						if s.Exclude != nil {
-							if verCompare(ver, s.Exclude) {
-								results = append(results, s)
-							}
-						}
-						// hmmmm dunno if we care
-						// TODO: checkout how mitre's inclusions actually work
-						if s.Include != nil {
-							if verCompare(ver, s.Exclude) {
-								results = append(results, s)
-							}
-						}
+			} else {
+				for _, s := range githubCVEs {
+					if strings.Contains(s.Description, name) && doVersionCompare(ver, s) {
+						results[s.ID] = s
+						// results = append(results, s)
+					}
+				}
 
-					} else {
-						results = append(results, s)
+				for _, s := range nvdCVEs {
+					// there's enough variation where it's optional if it exists in references
+					if strings.Contains(s.Description, name) || contains(s.References, name) {
+						if doVersionCompare(ver, s) {
+							// results = append(results, s)
+							results[s.ID] = s
+						}
 					}
 				}
 			}
-			json.NewEncoder(w).Encode(results)
+
+			// make array of results
+			out := make([]helpers.CVEs, 0, len(results))
+			for _, value := range results {
+				out = append(out, value)
+			}
+			json.NewEncoder(w).Encode(out)
 		}
 	}
 
@@ -139,11 +186,11 @@ func handleRequests() {
 
 func main() {
 	log.Println("Syncing GitHub")
-	helpers.GetGithub(&allCVEs)
+	helpers.GetGithub(&githubCVEs)
 	// for i := 2002; i < 2022; i++ {
 	log.Println("Syncing NVD")
 
-	helpers.GetNvd(&allCVEs)
+	helpers.GetNvd(&nvdCVEs)
 
 	handleRequests()
 }

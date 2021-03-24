@@ -116,9 +116,13 @@ func loadCVE(allCVEs *[]CVEs, cve *CVE) {
 		}
 
 		for _, ref := range c.CVE.References.Reference_data {
-			if strings.Contains(ref.URL, "github.com") || strings.Contains(ref.URL, "snyk") {
-				load_cve.References = append(load_cve.References, ref.URL)
+			// normalise url because of synk
+			url := ref.URL
+			if strings.Contains(url, "SNYK") {
+				// normalize to lower
+				url = strings.ToLower(url)
 			}
+			load_cve.References = append(load_cve.References, url)
 		}
 
 		*allCVEs = append(*allCVEs, load_cve)
