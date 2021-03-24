@@ -135,7 +135,7 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 
 				// tollerate /[name]/ or .[name]. and variations, but not -[name]-
 				// at this point it'll false positive too much
-				refRegex := regexp.MustCompile("[/\\.]" + name + "[/\\.]")
+				refRegex := regexp.MustCompile("[/]" + name + "[/]")
 				for _, s := range nvdCVEs {
 					// do the first search for a token key
 					// then it must exist in the references section
