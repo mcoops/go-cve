@@ -83,7 +83,23 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 			}
 			results := make([]helpers.CVEs, 0)
 			for _, s := range allCVEs {
-				// contains(s.CPEs, t) ||
+				// double check as the nvd results will be huge, github don't use references
+				// we want to try and filter out small searches and we use contains later
+				// TODO: on move to sql tag where the results come from
+				// TODO: fix this hack
+				if len(name) <= 4 {
+					if s.References != nil {
+						// search for the token
+						if strings.Contains(s.Description, " "+name+" ") == false {
+							continue
+						}
+					} else { // github, exact match name the package
+						if s.Description != name {
+							continue
+						}
+					}
+				}
+
 				if strings.Contains(s.Description, name) || contains(s.References, name) {
 					// do version
 					if ver != "" {
