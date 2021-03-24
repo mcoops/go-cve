@@ -65,6 +65,7 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		nvr := r.URL.Query().Get("nvr")
+		log.Println("Received search nvr: " + nvr)
 		w.Header().Set("Content-Type", "application/json")
 
 		if nvr != "" {
@@ -75,7 +76,7 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 			if len(req) > 1 {
 				ver = req[1]
 			}
-
+			results := make([]helpers.CVEs, 0)
 			for _, s := range allCVEs {
 				// contains(s.CPEs, t) ||
 				if strings.Contains(s.Description, name) || contains(s.References, name) {
@@ -87,22 +88,23 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 						}
 						if s.Exclude != nil {
 							if verCompare(ver, s.Exclude) {
-								json.NewEncoder(w).Encode(s)
+								results = append(results, s)
 							}
 						}
 						// hmmmm dunno if we care
 						// TODO: checkout how mitre's inclusions actually work
 						if s.Include != nil {
 							if verCompare(ver, s.Exclude) {
-								json.NewEncoder(w).Encode(s)
+								results = append(results, s)
 							}
 						}
 
 					} else {
-						json.NewEncoder(w).Encode(s)
+						results = append(results, s)
 					}
 				}
 			}
+			json.NewEncoder(w).Encode(results)
 		}
 	}
 
