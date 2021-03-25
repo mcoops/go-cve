@@ -16,7 +16,7 @@ var allCVEs []helpers.CVEs
 var githubCVEs []helpers.CVEs
 var nvdCVEs []helpers.CVEs
 
-var symbolRegex = regexp.MustCompile("[\\W]+")
+var symbolRegex = regexp.MustCompile("[\\w-]+")
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
@@ -123,7 +123,7 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 			// each search differently
 
 			// are there symbols (:.@) included?
-			if searchLen < 15 && symbolRegex.MatchString(name) == false {
+			if searchLen < 15 && symbolRegex.MatchString(name) == true {
 				// not enough variation
 				// github do exact matches
 				for _, s := range githubCVEs {
