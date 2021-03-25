@@ -100,7 +100,7 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		nvr := r.URL.Query().Get("nvr")
-		log.Println("Received search nvr: " + nvr)
+		// log.Println("Received search nvr: " + nvr)
 		w.Header().Set("Content-Type", "application/json")
 
 		if nvr != "" {
@@ -140,6 +140,11 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 					// do the first search for a token key
 					// then it must exist in the references section
 					if strings.Contains(s.Description, " "+name+" ") {
+						// doubtful that a package name will be describe as,
+						// "vuln found in a cookie package"
+						if strings.Contains(s.Description, "a "+name) {
+							continue
+						}
 						if hardRegexMatch(s.References, refRegex) || contains(s.CPEs, ":"+name+":") {
 							if doVersionCompare(ver, s) {
 								results[s.ID] = s
