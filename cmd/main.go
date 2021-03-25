@@ -140,7 +140,7 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 					// do the first search for a token key
 					// then it must exist in the references section
 					if strings.Contains(s.Description, " "+name+" ") {
-						if hardRegexMatch(s.References, refRegex) || contains(s.CPEs, name) {
+						if hardRegexMatch(s.References, refRegex) || contains(s.CPEs, ":"+name+":") {
 							if doVersionCompare(ver, s) {
 								results[s.ID] = s
 								// results = append(results, s)
