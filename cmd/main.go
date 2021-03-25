@@ -139,11 +139,13 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 				for _, s := range nvdCVEs {
 					// do the first search for a token key
 					// then it must exist in the references section
-					if strings.Contains(s.Description, " "+name+" ") && hardRegexMatch(s.References, refRegex) {
-						if doVersionCompare(ver, s) {
-							results[s.ID] = s
-							// results = append(results, s)
-							break
+					if strings.Contains(s.Description, " "+name+" ") {
+						if hardRegexMatch(s.References, refRegex) || contains(s.CPEs, name) {
+							if doVersionCompare(ver, s) {
+								results[s.ID] = s
+								// results = append(results, s)
+								break
+							}
 						}
 					}
 				}

@@ -28,8 +28,8 @@ type CVE struct {
 			Nodes []struct {
 				Children *[]struct {
 					Cpe_match []struct {
-						Vulnerable bool `json:"vulnerable"`
-						// CPE                   string  `json:"cpe23Uri"`
+						Vulnerable            bool    `json:"vulnerable"`
+						CPE                   string  `json:"cpe23Uri"`
 						VersionEndExcluding   *string `json:"versionEndExcluding"`
 						VersionEndIncluding   *string `json:"versionEndIncluding"`
 						VersionStartExcluding *string `json:"versionStartExcluding"`
@@ -37,8 +37,8 @@ type CVE struct {
 					}
 				}
 				Cpe_match *[]struct {
-					Vulnerable bool `json:"vulnerable"`
-					// CPE                   string  `json:"cpe23Uri"`
+					Vulnerable            bool    `json:"vulnerable"`
+					CPE                   string  `json:"cpe23Uri"`
 					VersionEndExcluding   *string `json:"versionEndExcluding"`
 					VersionEndIncluding   *string `json:"versionEndIncluding"`
 					VersionStartExcluding *string `json:"versionStartExcluding"`
@@ -57,11 +57,11 @@ type Versions struct {
 type CVEs struct {
 	ID          string
 	Description string
-	// CPEs        []string
-	CWEs       []string
-	References []string
-	Excludings []string
-	Exclude    []Versions
-	Includings []string
-	Include    []Versions
+	CPEs        []string
+	CWEs        []string
+	References  []string
+	Excludings  []string
+	Exclude     []Versions
+	Includings  []string
+	Include     []Versions
 }

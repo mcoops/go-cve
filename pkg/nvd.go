@@ -95,6 +95,8 @@ func loadCVE(allCVEs *[]CVEs, cve *CVE) {
 							if err == nil {
 								load_cve.Exclude = append(load_cve.Include, c)
 							}
+
+							load_cve.CPEs = append(load_cve.CPEs, cpe.CPE)
 						}
 					}
 				}
@@ -110,6 +112,8 @@ func loadCVE(allCVEs *[]CVEs, cve *CVE) {
 						if err == nil {
 							load_cve.Exclude = append(load_cve.Include, c)
 						}
+
+						load_cve.CPEs = append(load_cve.CPEs, cpe.CPE)
 					}
 				}
 			}
