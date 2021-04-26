@@ -2,13 +2,18 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+	"reflect"
 	"regexp"
 	"strings"
 
+	"github.com/mcoops/go-cve/internal/github"
 	helpers "github.com/mcoops/go-cve/pkg"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/mod/semver"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var allCVEs []helpers.CVEs
@@ -182,20 +187,57 @@ func mainSearch(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(out)
 		}
 	}
-
 }
 
 func handleRequests() {
 	http.HandleFunc("/search", mainSearch)
-	log.Printf("Starting server on 7777\nQuery port on localhost:7777/search?nvr=[package]@[version]")
-	log.Fatal(http.ListenAndServe(":7777", nil))
+
+	log.Info().Msg("Starting server on 7777")
+	log.Info().Msg("Query port on localhost:7777/search?nvr=[package]@[version]")
+
+	http.ListenAndServe(":7777", nil)
+}
+
+func dynamicCall(obj interface{}, fn string, db *gorm.DB) (res []reflect.Value) {
+	method := reflect.ValueOf(obj).MethodByName(fn)
+	var inputs []reflect.Value = []reflect.Value{reflect.ValueOf(db)}
+	// inputs = append(inputs, reflect.ValueOf(db))
+	// for _, v := range args {
+	// 	inputs = append(inputs, reflect.ValueOf(v))
+	// }
+	return method.Call(inputs)
+}
+
+type Plugins struct {
+	GH github.GitHub
 }
 
 func main() {
-	log.Println("Syncing GitHub")
+	var err error
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
+	plugins := Plugins{
+		GH: github.GitHub{},
+	}
+
+	path := "vulnerabilities.db"
+
+	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	if err != nil {
+		log.Fatal().Msg("Failed to open db " + err.Error())
+	}
+
+	v := reflect.ValueOf(plugins)
+
+	for i := 0; i < v.NumField(); i++ {
+		dynamicCall(v.Field(i).Interface(), "InitDB", db)
+		dynamicCall(v.Field(i).Interface(), "Gather", db)
+	}
+
 	helpers.GetGithub(&githubCVEs)
 	// for i := 2002; i < 2022; i++ {
-	log.Println("Syncing NVD")
+
+	// log.Println("Syncing NVD")
 
 	helpers.GetNvd(&nvdCVEs)
 
