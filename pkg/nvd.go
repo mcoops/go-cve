@@ -64,6 +64,8 @@ func loadCVE(allCVEs *[]CVEs, cve *CVE) {
 		load_cve := CVEs{
 			ID:          c.CVE.CVE_data_meta.ID,
 			Description: c.CVE.Description.Description_data[0].Value,
+			Severity:    "",
+			Impact:      c.Impact.BaseMetricV3.ImpactScore,
 		}
 		var cwes []string
 		for _, cweData := range c.CVE.ProblemType.Problemtype_data[0].Description {

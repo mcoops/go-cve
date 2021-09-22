@@ -26,6 +26,9 @@ type GHData struct {
 				}
 				VulnerableVersionRange string `json:"vulnerableVersionRange"`
 				Advisory               struct {
+					CVSS struct {
+						Score float32 `json:"score"`
+					}
 					Identifiers []struct {
 						Type  string `json:"type"`
 						Value string `json:"value"`
@@ -66,6 +69,9 @@ func GetGithub(allCVEs *[]CVEs) {
 			}
 			vulnerableVersionRange
 			advisory {
+				cvss {
+					score
+				}
 			  cwes(first: 5) {
 				edges {
 				  node {
@@ -135,6 +141,7 @@ func GetGithub(allCVEs *[]CVEs) {
 			c := CVEs{
 				ID:          cve,
 				Description: d.Package.Name,
+				Impact:      d.Advisory.CVSS.Score,
 			}
 
 			for _, cwe := range d.Advisory.CWES.Edges {

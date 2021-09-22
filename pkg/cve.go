@@ -9,7 +9,7 @@ type CVE struct {
 			ProblemType struct {
 				Problemtype_data []struct {
 					Description []struct {
-						Value string `json:""value"`
+						Value string `json:"value"`
 					}
 				}
 			}
@@ -46,6 +46,27 @@ type CVE struct {
 				}
 			}
 		}
+		Impact struct {
+			BaseMetricV3 struct {
+				CVSSV3 struct {
+					BaseScore float32 `json:"baseScore"`
+				}
+				ImpactScore float32 `json:"impactScore"`
+			}
+			// "baseMetricV2" : {
+			//   "cvssV2" : {
+			//     "version" : "2.0",
+			//     "vectorString" : "AV:L/AC:L/Au:N/C:P/I:N/A:N",
+			//     "accessVector" : "LOCAL",
+			//     "accessComplexity" : "LOW",
+			//     "authentication" : "NONE",
+			//     "confidentialityImpact" : "PARTIAL",
+			//     "integrityImpact" : "NONE",
+			//     "availabilityImpact" : "NONE",
+			//     "baseScore" : 2.1
+			//   },
+
+		} //end of Impact
 	}
 }
 
@@ -57,6 +78,8 @@ type Versions struct {
 type CVEs struct {
 	ID          string
 	Description string
+	Severity    string
+	Impact      float32
 	CPEs        []string
 	CWEs        []string
 	References  []string
